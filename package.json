@@ -1,0 +1,30 @@
+{
+  "name": "nvm",
+  "version": "0.0.1",
+  "description": "",
+  "homepage": "https://github.com/moreira-and/langchain-lab#readme",
+  "bugs": {
+    "url": "https://github.com/moreira-and/langchain-lab/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moreira-and/langchain-lab.git"
+  },
+  "license": "ISC",
+  "author": "moreira-and",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --env-file .env --inspect --watch src/index.ts",
+    "test:dev": "node --env-file .env --inspect --watch --test ./tests/**/*.test.ts",
+    "test": "node --env-file .env --test  ./tests/**/*.test.ts",
+    "langgraph:server": "npx @langchain/langgraph-cli@latest dev --host 0.0.0.0 --port 2024"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@langchain/core": "^1.1.19",
+    "@types/node": "^24.12.2",
+    "fastify": "^5.7.4",
+    "langchain": "^1.2.17"
+  }
+}
