@@ -1,0 +1,12 @@
+{
+  "name": "langgraph-lab",
+  "forwardPorts": [2024],
+  "portsAttributes": {
+    "2024": {
+      "label": "LangGraph Server",
+      "visibility": "public",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postStartCommand": "npm run langgraph:server"
+}
