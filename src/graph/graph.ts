@@ -10,7 +10,6 @@ import { upperCaseNode } from "./nodes/upperCaseNode.ts";
 import { lowerCaseNode } from "./nodes/lowerCaseNode.ts";
 import { fallbackNode } from "./nodes/fallbackNode.ts";
 
-
 const GraphState = z.object({
   message: withLangGraph(z.custom<BaseMessage[]>(), MessagesZodMeta),
   output: z.string(),
@@ -24,11 +23,6 @@ export function buildGraph() {
     stateSchema: GraphState,
   })
     .addNode("identifyIntent", identifyIntentNode)
-    // .addNode("identifyIntent", (state: GraphState) => {
-    //   return {
-    //     ...state,
-    //   };
-    // })
 
     .addNode("upperCase", upperCaseNode)
     .addNode("lowerCase", lowerCaseNode)
@@ -40,23 +34,23 @@ export function buildGraph() {
     .addConditionalEdges(
       "identifyIntent",
       (state: GraphState) => {
-        switch(state.command){
-          case 'uppercase':
-            return 'uppercase';
-          case 'lowercase':
-            return 'lowercase'
+        switch (state.command) {
+          case "uppercase":
+            return "uppercase";
+          case "lowercase":
+            return "lowercase";
           default:
-            return 'fallback'
+            return "fallback";
         }
       },
       {
-        'uppercase': "upperCase",
-        'lowercase': "lowerCase",
-        'fallback': "fallbackCase"
-      }
-    )    
+        uppercase: "upperCase",
+        lowercase: "lowerCase",
+        fallback: "fallbackCase",
+      },
+    )
     .addEdge("upperCase", "chatResponse")
-    .addEdge("lowerCase", "chatResponse")    
+    .addEdge("lowerCase", "chatResponse")
     .addEdge("fallbackCase", "chatResponse")
     .addEdge("chatResponse", END);
 

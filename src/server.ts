@@ -30,7 +30,9 @@ export const createServer = () => {
         return reply.send(response.output);
       } catch (error) {
         console.error("Error handling /chat request:", error);
-        return reply.code(500);
+        return reply.status(500).send({
+            error: 'An error occurred while processing your request.',
+        });
       }
     },
   );

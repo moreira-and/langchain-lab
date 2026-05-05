@@ -8,7 +8,11 @@
   "image_distro": "wolfi",
   "http": {
     "cors": {
-      "allow_origins": ["https://smith.langchain.com", "https://*.github.dev"],
+      "allow_origins": [
+        "https://smith.langchain.com",
+        "https://*.github.dev",
+        "https://*.trycloudflare.com"
+      ],
       "allow_methods": ["*"],
       "allow_headers": ["*"],
       "allow_credentials": true
