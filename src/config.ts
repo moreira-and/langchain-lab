@@ -1,5 +1,6 @@
 export type ModelConfig = {
   apiKey: string;
+  baseURL: string;
   httpReferer: string;
   xTitle: string;
 
@@ -16,8 +17,9 @@ export type ModelConfig = {
 
 console.assert(process.env.OPENROUTER_API_KEY, 'OPENROUTER_API_KEY is not set in environment variables');
 
-export const config: ModelConfig = {
+export const defaultConfig: ModelConfig = {
   apiKey: process.env.OPENROUTER_API_KEY!,
+  baseURL: 'https://openrouter.ai/api/v1',
   httpReferer: '',
   xTitle: 'langchain-lab',
   models: [
