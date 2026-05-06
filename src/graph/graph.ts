@@ -1,58 +1,85 @@
-import { MessagesZodMeta, StateGraph, START, END } from "@langchain/langgraph";
+// dependences
+import {
+  StateGraph,
+  START,
+  END,
+  MessagesZodMeta,
+} from "@langchain/langgraph";
 import { withLangGraph } from "@langchain/langgraph/zod";
-import { BaseMessage } from "langchain";
+import type { BaseMessage } from '@langchain/core/messages';
 import { z } from "zod/v3";
 
-import { identifyIntentNode } from "./nodes/identifyIntentNode.ts";
-import { chatResponseNode } from "./nodes/chatResponseNode.ts";
+// nodes
+import { createSchedulerNode } from './nodes/schedulerNode.ts';
+import { createCancellerNode } from './nodes/cancellerNode.ts';
+import { createIdentifyIntentNode } from "./nodes/identifyIntentNode.ts";
+import { createMessageGeneratorNode } from "./nodes/messageGeneratorNode.ts";
 
-import { upperCaseNode } from "./nodes/upperCaseNode.ts";
-import { lowerCaseNode } from "./nodes/lowerCaseNode.ts";
-import { fallbackNode } from "./nodes/fallbackNode.ts";
+// services
+import { LlmRouterService } from "../services/LlmRouterService.ts";
+import { AppointmentService } from "../services/AppointmentService.ts";
 
-const GraphState = z.object({
-  message: withLangGraph(z.custom<BaseMessage[]>(), MessagesZodMeta),
-  output: z.string(),
-  command: z.enum(["uppercase", "lowercase", "unknown"]),
+
+const AppointmentStateAnnotation = z.object({
+  messages: withLangGraph(
+    z.custom<BaseMessage[]>(),
+    MessagesZodMeta),
+
+  patientName: z.string().optional(),
+
+  intent: z.enum(['schedule', 'cancel', 'unknown']).optional(),
+  professionalId: z.number().optional(),
+  professionalName: z.string().optional(),
+  datetime: z.string().optional(),
+  reason: z.string().optional(),
+
+  actionSuccess: z.boolean().optional(),
+  actionError: z.string().optional(),
+  appointmentData: z.any().optional(),
+
+  error: z.string().optional(),
 });
 
-export type GraphState = z.infer<typeof GraphState>;
 
-export function buildGraph() {
+export type GraphState = z.infer<typeof AppointmentStateAnnotation>;
+
+
+export function buildAppointmentGraph(llmClient: LlmRouterService, appoinmentService: AppointmentService) {
+
+
+  // Build workflow graph
   const workflow = new StateGraph({
-    stateSchema: GraphState,
+    stateSchema: AppointmentStateAnnotation,
   })
-    .addNode("identifyIntent", identifyIntentNode)
+    .addNode('identifyIntent', createIdentifyIntentNode(llmClient))
+    .addNode('schedule', createSchedulerNode(appoinmentService))
+    .addNode('cancel', createCancellerNode(appoinmentService))
+    .addNode('message', createMessageGeneratorNode(llmClient))
 
-    .addNode("upperCase", upperCaseNode)
-    .addNode("lowerCase", lowerCaseNode)
-    .addNode("fallbackCase", fallbackNode)
+    // Flow
+    .addEdge(START, 'identifyIntent')
 
-    .addNode("chatResponse", chatResponseNode)
-
-    .addEdge(START, "identifyIntent")
+    // Route based on intent
     .addConditionalEdges(
-      "identifyIntent",
-      (state: GraphState) => {
-        switch (state.command) {
-          case "uppercase":
-            return "uppercase";
-          case "lowercase":
-            return "lowercase";
-          default:
-            return "fallback";
+      'identifyIntent',
+      (state: GraphState): string => {
+        if (state.error || !state.intent || state.intent === 'unknown') {
+          return 'message';
         }
+
+        console.log(`➡️  Routing based on intent: ${state.intent}`);
+        return state.intent
       },
       {
-        uppercase: "upperCase",
-        lowercase: "lowerCase",
-        fallback: "fallbackCase",
-      },
+        schedule: 'schedule',
+        cancel: 'cancel',
+        message: 'message',
+      }
     )
-    .addEdge("upperCase", "chatResponse")
-    .addEdge("lowerCase", "chatResponse")
-    .addEdge("fallbackCase", "chatResponse")
-    .addEdge("chatResponse", END);
+
+    .addEdge('schedule', 'message')
+    .addEdge('cancel', 'message')
+    .addEdge('message', END);
 
   return workflow.compile();
 }

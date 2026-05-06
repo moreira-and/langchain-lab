@@ -1,20 +1,43 @@
-import { type GraphState } from "../graph.ts";
+import { getSystemPrompt, getUserPromptTemplate, IntentSchema } from '../../prompts/v1/identifyIntent.ts';
+import { professionals } from '../../services/AppointmentService.ts';
+import { LlmRouterService as LlmRouterService } from '../../services/LlmRouterService.ts';
+import type { GraphState } from '../graph.ts';
 
-export function identifyIntentNode(state: GraphState): GraphState {
-  const input = state.message.at(-1)?.text ?? "";
-  const inputLower = input.toLowerCase();
+export function createIdentifyIntentNode(llmClient: LlmRouterService) {
+  return async (state: GraphState): Promise<Partial<GraphState>> => {
+    console.log(`🔍 Identifying intent...`);
+    const input = state.messages.at(-1)!.text;
 
-  let command: GraphState["command"] = "unknown";
+    try {
+      const systemPrompt = getSystemPrompt(professionals)
+      const userPrompt = getUserPromptTemplate(input)
+      const result = await llmClient.generateStructured(
+        systemPrompt,
+        userPrompt,
+        IntentSchema,
+      )
+      if (!result.success) {
+        console.log(`⚠️  Intent identification failed: ${result.error}`);
+        return {
+          intent: 'unknown',
+          error: result.error
+        }
+      }
 
-  if (inputLower.includes("upper")) {
-    command = "uppercase";
-  } else if (inputLower.includes("lower")) {
-    command = "lowercase";
-  }
+      const intentData = result.data!
+      console.log(`✅ Intent identified: ${intentData.intent}`);
 
-  return {
-    ...state,
-    command,
-    output: input,
+      return {
+        ...intentData,
+      };
+
+    } catch (error) {
+      console.error('❌ Error in identifyIntent node:', error);
+      return {
+        ...state,
+        intent: 'unknown',
+        error: error instanceof Error ? error.message : 'Intent identification failed',
+      };
+    }
   };
 }
