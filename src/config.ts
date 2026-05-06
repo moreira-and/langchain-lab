@@ -24,7 +24,7 @@ export const defaultConfig: ModelConfig = {
   xTitle: 'langchain-lab',
   models: [
     // https://openrouter.ai/models?fmt=cards&max_price=0&supported_parameters=response_format
-    'arcee-ai/trinity-large-preview:free',
+    'openrouter/owl-alpha',
   ],
   provider: {
     sort: {
