@@ -6,46 +6,46 @@ import { professionals } from '../src/services/AppointmentService.ts';
 const app = createServer();
 
 async function makeARequest(question: string) {
-    return await app.inject({
-        method: 'POST',
-        url: '/chat',
-        payload: {
-            question,
-        },
-    });
+  return await app.inject({
+    method: 'POST',
+    url: '/chat',
+    payload: {
+      question,
+    },
+  });
 }
 
 describe('Medical Appointment System - E2E Tests', async () => {
 
-    it('Schedule appointment - Success', async () => {
-        const response = await makeARequest(
-            `Olá, sou Maria Santos e quero agendar uma consulta com ${professionals.at(0)?.name} para amanhã às 16h para um check-up regular`
-        )
+  it('Schedule appointment - Success', async () => {
+    const response = await makeARequest(
+      `Olá, sou Maria Santos e quero agendar uma consulta com ${professionals.at(0)?.name} para amanhã às 16h para um check-up regular`
+    )
 
-        console.log('Schedule Response:', response.body);
+    console.log('Schedule Response:', response.body);
 
-        assert.equal(response.statusCode, 200);
-        const body = JSON.parse(response.body);
-        assert.equal(body.intent, 'schedule');
-        assert.equal(body.actionSuccess, true);
-    });
+    assert.equal(response.statusCode, 200);
+    const body = JSON.parse(response.body);
+    assert.equal(body.intent, 'schedule');
+    assert.equal(body.actionSuccess, true);
+  });
 
 
-    it('Cancel appointment - Success', async () => {
+  it('Cancel appointment - Success', async () => {
 
-         await makeARequest(
-            `Sou Joao da Silva e quero agendar uma consulta com ${professionals.at(1)?.name} para hoje às 14h`
-        )
+    await makeARequest(
+      `Sou Joao da Silva e quero agendar uma consulta com ${professionals.at(1)?.name} para hoje às 14h`
+    )
 
-        const response = await makeARequest(
-            `Cancele minha consulta com ${professionals.at(1)?.name} que tenho hoje às 14h, me chamo Joao da Silva`
-        );
+    const response = await makeARequest(
+      `Cancele minha consulta com ${professionals.at(1)?.name} que tenho hoje às 14h, me chamo Joao da Silva`
+    );
 
-        console.log('Cancel Response:', response.body);
+    console.log('Cancel Response:', response.body);
 
-        assert.equal(response.statusCode, 200);
-        const body = JSON.parse(response.body);
-        assert.equal(body.intent, 'cancel');
-        assert.equal(body.actionSuccess, true);
-    });
+    assert.equal(response.statusCode, 200);
+    const body = JSON.parse(response.body);
+    assert.equal(body.intent, 'cancel');
+    assert.equal(body.actionSuccess, true);
+  });
 });
