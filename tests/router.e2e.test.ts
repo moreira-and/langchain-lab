@@ -1,46 +1,51 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { createServer } from "../src/server.ts";
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { createServer } from '../src/server.ts';
+import { professionals } from '../src/services/AppointmentService.ts';
 
-test("command upper transforms message into UPPERCASE", async () => {
-  const app = createServer();
-  const msg = "Make this massage upper please!";
-  const expected = msg.toUpperCase();
+const app = createServer();
 
-  const response = await app.inject({
-    method: "POST",
-    url: "/chat",
-    body: { question: msg },
+async function makeARequest(question: string) {
+  return await app.inject({
+    method: 'POST',
+    url: '/chat',
+    payload: {
+      question,
+    },
   });
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.body, expected);
-});
+}
 
-test("command upper transforms message into LOWERCASE", async () => {
-  const app = createServer();
-  const msg = "Make this massage lower please!";
-  const expected = msg.toLowerCase();
+describe('Medical Appointment System - E2E Tests', async () => {
 
-  const response = await app.inject({
-    method: "POST",
-    url: "/chat",
-    body: { question: msg },
+  it('Schedule appointment - Success', async () => {
+    const response = await makeARequest(
+      `Olá, sou Maria Santos e quero agendar uma consulta com ${professionals.at(0)?.name} para amanhã às 16h para um check-up regular`
+    )
+
+    console.log('Schedule Response:', response.body);
+
+    assert.equal(response.statusCode, 200);
+    const body = JSON.parse(response.body);
+    assert.equal(body.intent, 'schedule');
+    assert.equal(body.actionSuccess, true);
   });
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.body, expected);
-});
 
 
-test("command upper transforms message into fallback", async () => {
-  const app = createServer();
-  const msg = "Return fallback massage, please!";
-  const expected = "Unknown command. Try 'make this uppercase' or 'convert to lowercase'.";
+  it('Cancel appointment - Success', async () => {
 
-  const response = await app.inject({
-    method: "POST",
-    url: "/chat",
-    body: { question: msg },
+    await makeARequest(
+      `Sou Joao da Silva e quero agendar uma consulta com ${professionals.at(1)?.name} para hoje às 14h`
+    )
+
+    const response = await makeARequest(
+      `Cancele minha consulta com ${professionals.at(1)?.name} que tenho hoje às 14h, me chamo Joao da Silva`
+    );
+
+    console.log('Cancel Response:', response.body);
+
+    assert.equal(response.statusCode, 200);
+    const body = JSON.parse(response.body);
+    assert.equal(body.intent, 'cancel');
+    assert.equal(body.actionSuccess, true);
   });
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.body, expected);
 });
