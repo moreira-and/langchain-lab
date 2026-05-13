@@ -1,0 +1,26 @@
+{
+  "name": "module-01-appointment-chain",
+  "entrypoint": "identifyIntent",
+  "nodes": {
+    "identifyIntent": {
+      "type": "llm.intent-identification",
+      "next": {
+        "schedule": "schedule",
+        "cancel": "cancel",
+        "unknown": "message"
+      }
+    },
+    "schedule": {
+      "type": "appointment.schedule",
+      "next": "message"
+    },
+    "cancel": {
+      "type": "appointment.cancel",
+      "next": "message"
+    },
+    "message": {
+      "type": "llm.message-generation",
+      "next": "END"
+    }
+  }
+}
