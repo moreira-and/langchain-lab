@@ -20,7 +20,7 @@ import { LlmRouterService } from "../services/LlmRouterService.ts";
 import { AppointmentService } from "../services/AppointmentService.ts";
 
 
-const AppointmentStateAnnotation = z.object({
+export const AppointmentStateAnnotation = z.object({
   messages: withLangGraph(
     z.custom<BaseMessage[]>(),
     MessagesZodMeta),
