@@ -1,0 +1,10 @@
+{
+  "name": "module-02-chain",
+  "entrypoint": "module02",
+  "nodes": {
+    "module02": {
+      "type": "module-02",
+      "next": "END"
+    }
+  }
+}
